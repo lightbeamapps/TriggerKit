@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		558463BA2A0274EF00646730 /* AppActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463B92A0274EF00646730 /* AppActions.swift */; };
+		558463BA2A0274EF00646730 /* AppActionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463B92A0274EF00646730 /* AppActionsViewModel.swift */; };
 		558463BD2A02750800646730 /* TriggerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 558463BC2A02750800646730 /* TriggerKit */; };
-		558463BF2A02846D00646730 /* MappingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463BE2A02846D00646730 /* MappingView.swift */; };
+		558463BF2A02846D00646730 /* ActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463BE2A02846D00646730 /* ActionsView.swift */; };
+		558463C32A02873300646730 /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463C22A02873300646730 /* DemoView.swift */; };
 		55ABA28E2A0251E0004A84E5 /* TriggerKitDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55ABA28D2A0251E0004A84E5 /* TriggerKitDemoApp.swift */; };
 		55ABA2902A0251E0004A84E5 /* AppTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55ABA28F2A0251E0004A84E5 /* AppTabView.swift */; };
 		55ABA2922A0251E1004A84E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55ABA2912A0251E1004A84E5 /* Assets.xcassets */; };
@@ -18,8 +19,9 @@
 
 /* Begin PBXFileReference section */
 		558463B82A02524700646730 /* TriggerKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = TriggerKit; path = ../..; sourceTree = "<group>"; };
-		558463B92A0274EF00646730 /* AppActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppActions.swift; sourceTree = "<group>"; };
-		558463BE2A02846D00646730 /* MappingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MappingView.swift; sourceTree = "<group>"; };
+		558463B92A0274EF00646730 /* AppActionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppActionsViewModel.swift; sourceTree = "<group>"; };
+		558463BE2A02846D00646730 /* ActionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsView.swift; sourceTree = "<group>"; };
+		558463C22A02873300646730 /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
 		55ABA28A2A0251E0004A84E5 /* TriggerKitDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TriggerKitDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55ABA28D2A0251E0004A84E5 /* TriggerKitDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriggerKitDemoApp.swift; sourceTree = "<group>"; };
 		55ABA28F2A0251E0004A84E5 /* AppTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabView.swift; sourceTree = "<group>"; };
@@ -58,7 +60,8 @@
 			isa = PBXGroup;
 			children = (
 				55ABA28F2A0251E0004A84E5 /* AppTabView.swift */,
-				558463BE2A02846D00646730 /* MappingView.swift */,
+				558463C22A02873300646730 /* DemoView.swift */,
+				558463BE2A02846D00646730 /* ActionsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -66,7 +69,7 @@
 		558463C12A0284D000646730 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				558463B92A0274EF00646730 /* AppActions.swift */,
+				558463B92A0274EF00646730 /* AppActionsViewModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -184,8 +187,9 @@
 			files = (
 				55ABA2902A0251E0004A84E5 /* AppTabView.swift in Sources */,
 				55ABA28E2A0251E0004A84E5 /* TriggerKitDemoApp.swift in Sources */,
-				558463BA2A0274EF00646730 /* AppActions.swift in Sources */,
-				558463BF2A02846D00646730 /* MappingView.swift in Sources */,
+				558463BA2A0274EF00646730 /* AppActionsViewModel.swift in Sources */,
+				558463C32A02873300646730 /* DemoView.swift in Sources */,
+				558463BF2A02846D00646730 /* ActionsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

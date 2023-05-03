@@ -9,12 +9,12 @@ import SwiftUI
 
 @main
 struct TriggerKitDemoApp: App {
-    @StateObject var actionsModel: AppActionsModel = AppActionsModel()
+    @StateObject var actionsViewModel: AppActionsViewModel = AppActionsViewModel()
     
     var body: some Scene {
         WindowGroup {
             AppTabView()
-                .environmentObject(actionsModel)
+                .environmentObject(actionsViewModel)
         }
     }
 }

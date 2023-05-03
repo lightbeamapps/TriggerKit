@@ -10,15 +10,15 @@ import SwiftUI
 struct AppTabView: View {
     var body: some View {
         TabView {
-            VStack {
-                Text("stuff to control here")
+            NavigationView {
+                DemoView()
             }
             .tabItem {
                 Label("Demo", systemImage: "play.circle")
             }
             
-            VStack {
-                Text("Configure here")
+            NavigationView {
+                ActionsView()
             }
             .tabItem {
                 Label("Mapping", systemImage: "switch.2")

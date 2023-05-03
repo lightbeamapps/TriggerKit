@@ -16,14 +16,14 @@ public enum AppAction: String, Codable, Hashable, CaseIterable {
     case updateToggle2
 }
 
-public class AppActionsModel: ObservableObject {
-        
+public class AppActionsViewModel: ObservableObject {
+    
     // The mapping of the app action to the trigger, this is stored on disk
     public struct MidiNoteMapping: Codable, Hashable {
         var action: AppAction
         var trigger: TKTriggerMidiNote
     }
-
+    
     // The mapping of the app action to the trigger, this is stored on disk
     public struct MidiCCMapping: Codable, Hashable {
         var action: AppAction
@@ -36,14 +36,29 @@ public class AppActionsModel: ObservableObject {
     @Published var slider3: Double = 0.0
     @Published var toggle1: Bool = false
     @Published var toggle2: Bool = false
-
+    @Published var eventString: String = ""
+    
     // MARK: - Private properties
     private let bus = TKBus(config: TKBusConfig(clientName: "TriggerKitDemo",
                                                 model: "SwiftUI",
-                                                manufacturer: "lightbeamapps"))
+                                                manufacturer: "lightbeamapps",
+                                                inputConnectionName: "TriggerKitDemo"))
     
     init() {
         try? bus.midiStart()
+        self.setBindings()
+    }
+    
+    func setBindings() {
+        Task {
+            for await value in bus.$eventString.values {
+                await updateEventString(value)
+            }
+        }
+    }
+    
+    @MainActor func updateEventString(_ value: String) async {
+        self.eventString = value
     }
     
     func startup() {

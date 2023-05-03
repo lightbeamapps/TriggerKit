@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct TriggerKitDemoApp: App {
+    @StateObject var actionsModel: AppActionsModel = AppActionsModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppTabView()
+                .environmentObject(actionsModel)
         }
     }
 }

@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  AppTabView.swift
 //  TriggerKitDemo
 //
 //  Created by dave on 3/05/23.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct AppTabView: View {
     var body: some View {
         TabView {
             VStack {
@@ -16,7 +16,7 @@ struct ContentView: View {
             .tabItem {
                 Label("Demo", systemImage: "play.circle")
             }
-
+            
             VStack {
                 Text("Configure here")
             }
@@ -24,11 +24,5 @@ struct ContentView: View {
                 Label("Mapping", systemImage: "switch.2")
             }
         }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
     }
 }

@@ -7,17 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		558463BA2A0274EF00646730 /* AppActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463B92A0274EF00646730 /* AppActions.swift */; };
+		558463BD2A02750800646730 /* TriggerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 558463BC2A02750800646730 /* TriggerKit */; };
+		558463BF2A02846D00646730 /* MappingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463BE2A02846D00646730 /* MappingView.swift */; };
 		55ABA28E2A0251E0004A84E5 /* TriggerKitDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55ABA28D2A0251E0004A84E5 /* TriggerKitDemoApp.swift */; };
-		55ABA2902A0251E0004A84E5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55ABA28F2A0251E0004A84E5 /* ContentView.swift */; };
+		55ABA2902A0251E0004A84E5 /* AppTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55ABA28F2A0251E0004A84E5 /* AppTabView.swift */; };
 		55ABA2922A0251E1004A84E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55ABA2912A0251E1004A84E5 /* Assets.xcassets */; };
 		55ABA2952A0251E1004A84E5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55ABA2942A0251E1004A84E5 /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		558463B82A02524700646730 /* TriggerKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = TriggerKit; path = ../..; sourceTree = "<group>"; };
+		558463B92A0274EF00646730 /* AppActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppActions.swift; sourceTree = "<group>"; };
+		558463BE2A02846D00646730 /* MappingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MappingView.swift; sourceTree = "<group>"; };
 		55ABA28A2A0251E0004A84E5 /* TriggerKitDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TriggerKitDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55ABA28D2A0251E0004A84E5 /* TriggerKitDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriggerKitDemoApp.swift; sourceTree = "<group>"; };
-		55ABA28F2A0251E0004A84E5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		55ABA28F2A0251E0004A84E5 /* AppTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTabView.swift; sourceTree = "<group>"; };
 		55ABA2912A0251E1004A84E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		55ABA2942A0251E1004A84E5 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -27,6 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				558463BD2A02750800646730 /* TriggerKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,12 +47,37 @@
 			name = Packages;
 			sourceTree = "<group>";
 		};
+		558463BB2A02750800646730 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		558463C02A0284C800646730 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				55ABA28F2A0251E0004A84E5 /* AppTabView.swift */,
+				558463BE2A02846D00646730 /* MappingView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		558463C12A0284D000646730 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				558463B92A0274EF00646730 /* AppActions.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		55ABA2812A0251E0004A84E5 = {
 			isa = PBXGroup;
 			children = (
 				558463B72A02524700646730 /* Packages */,
 				55ABA28C2A0251E0004A84E5 /* TriggerKitDemo */,
 				55ABA28B2A0251E0004A84E5 /* Products */,
+				558463BB2A02750800646730 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -62,7 +93,8 @@
 			isa = PBXGroup;
 			children = (
 				55ABA28D2A0251E0004A84E5 /* TriggerKitDemoApp.swift */,
-				55ABA28F2A0251E0004A84E5 /* ContentView.swift */,
+				558463C12A0284D000646730 /* Model */,
+				558463C02A0284C800646730 /* Views */,
 				55ABA2912A0251E1004A84E5 /* Assets.xcassets */,
 				55ABA2932A0251E1004A84E5 /* Preview Content */,
 			);
@@ -93,6 +125,9 @@
 			dependencies = (
 			);
 			name = TriggerKitDemo;
+			packageProductDependencies = (
+				558463BC2A02750800646730 /* TriggerKit */,
+			);
 			productName = TriggerKitDemo;
 			productReference = 55ABA28A2A0251E0004A84E5 /* TriggerKitDemo.app */;
 			productType = "com.apple.product-type.application";
@@ -147,8 +182,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55ABA2902A0251E0004A84E5 /* ContentView.swift in Sources */,
+				55ABA2902A0251E0004A84E5 /* AppTabView.swift in Sources */,
 				55ABA28E2A0251E0004A84E5 /* TriggerKitDemoApp.swift in Sources */,
+				558463BA2A0274EF00646730 /* AppActions.swift in Sources */,
+				558463BF2A02846D00646730 /* MappingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,6 +386,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		558463BC2A02750800646730 /* TriggerKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TriggerKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 55ABA2822A0251E0004A84E5 /* Project object */;
 }

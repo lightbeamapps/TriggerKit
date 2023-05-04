@@ -8,7 +8,7 @@
 import Foundation
 import TriggerKit
 
-public enum AppAction: String, Codable, Hashable, CaseIterable {
+public enum AppAction: String, Codable, Hashable, CaseIterable, Equatable {
     case updateSlider1
     case updateSlider2
     case updateSlider3
@@ -39,7 +39,7 @@ public class AppActionsViewModel: ObservableObject {
     @Published var eventString: String = ""
     
     // MARK: - Private properties
-    private let bus = TKBus(config: TKBusConfig(clientName: "TriggerKitDemo",
+    private let bus = TKBus<AppAction>(config: TKBusConfig(clientName: "TriggerKitDemo",
                                                 model: "SwiftUI",
                                                 manufacturer: "lightbeamapps",
                                                 inputConnectionName: "TriggerKitDemo"))
@@ -62,44 +62,33 @@ public class AppActionsViewModel: ObservableObject {
     }
     
     func startup() {
-        // Decode our mapped actions
-        let midiCCMapping1 = MidiCCMapping(action: .updateSlider1, trigger: .init(cc: "71"))
-        let midiCCMapping2 = MidiCCMapping(action: .updateSlider2, trigger: .init(cc: "55"))
-        let midiCCMapping3 = MidiCCMapping(action: .updateSlider3, trigger: .init(cc: "66"))
-        
-        let midiCCMappings = [midiCCMapping1, midiCCMapping2, midiCCMapping3]
-        
-        var activeMappings: [UUID: MidiCCMapping] = [:]
+        // Decode our mapped actions then loop through and all them appropriately
         
         // Register mappings
-        midiCCMappings.forEach { mapping in
-            let id = bus.addTrigger(mapping.trigger) { [unowned self] payload in
-                handleAction(mapping.action, payload: payload)
-            }
-            
-            activeMappings[id] = mapping
+        bus.addMapping(action: .updateSlider1, cc: .init(cc: "71")) { [unowned self] payload in
+            Task { await self.updateSlider(slider: &slider1, value: payload.value) }
+        }
+        
+        bus.addMapping(action: .updateSlider1, cc: .init(cc: "55")) { [unowned self] payload in
+            Task { await self.updateSlider(slider: &slider2, value: payload.value) }
+        }
+                
+        bus.addMapping(action: .updateSlider1, cc: .init(cc: "66")) { [unowned self] payload in
+            Task { await self.updateSlider(slider: &slider3, value: payload.value) }
+        }
+        
+        bus.addMapping(action: .updateSlider1, note: .init(note: "C4")) { [unowned self] payload in
+            Task { await self.flipToggle(toggle: &toggle1) }
         }
     }
-    
-    func handleAction(_ action: AppAction, payload: TKTriggerPayLoad) {
-        switch action {
-        case .updateSlider1:
-            if let value = payload.value {
-                slider1 = value
-            }
-        case .updateSlider2:
-            if let value = payload.value {
-                slider2 = value
-            }
-        case .updateSlider3:
-            if let value = payload.value {
-                slider3 = value
-            }
-        case .updateToggle1:
-            toggle1.toggle()
-        case .updateToggle2:
-            toggle2.toggle()
-        }
+        
+    @MainActor func updateSlider(slider: inout Double, value: Double?) {
+        guard let value else { return }
+        slider = value
+    }
+            
+    @MainActor func flipToggle(toggle: inout Bool) {
+        toggle.toggle()
     }
     
 }

@@ -16,7 +16,7 @@ public enum AppAction: String, Codable, Hashable, CaseIterable, Equatable {
     case updateToggle2
 }
 
-public class AppActionsViewModel: ObservableObject {
+@MainActor public class AppActionsViewModel: ObservableObject {
     
     // The mapping of the app action to the trigger, this is stored on disk
     public struct MidiNoteMapping: Codable, Hashable {
@@ -38,6 +38,8 @@ public class AppActionsViewModel: ObservableObject {
     @Published var toggle2: Bool = false
     @Published var eventString: String = ""
     
+    @Published var midiLearn: Bool = false
+    
     // MARK: - Private properties
     private let bus = TKBus<AppAction>(config: TKBusConfig(clientName: "TriggerKitDemo",
                                                 model: "SwiftUI",
@@ -47,6 +49,7 @@ public class AppActionsViewModel: ObservableObject {
     init() {
         try? bus.midiStart()
         self.setBindings()
+        self.startup()
     }
     
     func setBindings() {
@@ -66,19 +69,21 @@ public class AppActionsViewModel: ObservableObject {
         
         // Register mappings
         bus.addMapping(action: .updateSlider1, cc: .init(cc: "71")) { [unowned self] payload in
-            Task { await self.updateSlider(slider: &slider1, value: payload.value) }
+            Task { self.updateSlider(slider: &slider1, value: payload.value) }
         }
         
         bus.addMapping(action: .updateSlider1, cc: .init(cc: "55")) { [unowned self] payload in
-            Task { await self.updateSlider(slider: &slider2, value: payload.value) }
+            Task { self.updateSlider(slider: &slider2, value: payload.value) }
         }
                 
         bus.addMapping(action: .updateSlider1, cc: .init(cc: "66")) { [unowned self] payload in
-            Task { await self.updateSlider(slider: &slider3, value: payload.value) }
+            Task { self.updateSlider(slider: &slider3, value: payload.value) }
         }
         
-        bus.addMapping(action: .updateSlider1, note: .init(note: "C4")) { [unowned self] payload in
-            Task { await self.flipToggle(toggle: &toggle1) }
+        bus.addMapping(action: .updateSlider1, note: .init(note: 62)) { [unowned self] payload in
+            Task {
+                self.flipToggle(toggle: &toggle1)
+            }
         }
     }
         

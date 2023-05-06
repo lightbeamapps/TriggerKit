@@ -39,6 +39,7 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     
     // MARK: - Published properties
     @Published public var eventString: String = ""
+    @Published public var midiEvents: [TKTriggerMidiNote] = []
     
     // MARK: - Public properties
     public var midiManager: MIDIManager
@@ -66,18 +67,46 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     
     public func midiStart() throws {
         try midiManager.start()
-        
+
         try midiManager.addInputConnection(
-            toOutputs: [.name("IDAM MIDI Host")],
-            tag: config.inputConnectionName,
-            receiver: MIDIReceiver.eventsLogging(filterActiveSensingAndClock: false, { eventString in
-                self.eventString = eventString
+            toOutputs: [], // no need to specify if we're using .allEndpoints
+            tag: "Listener",
+            mode: .allEndpoints, // auto-connect to all outputs that may appear
+            filter: .owned(), // don't allow self-created virtual endpoints
+            receiver: .events({ [weak self] events in
+                
+                Task { [weak self] in
+                    await self?.handleMidiEvents(events)
+                }
+                
+                self?.eventString = events.description
             })
         )
     }
+    
+    private func handleMidiEvents(_ events: [MIDIEvent]) async {
+        events.forEach { event in
+            switch event {
+            case .noteOn(let noteOn):
+                let note = TKTriggerMidiNote(note: Int(noteOn.note.number))
+                let payload = TKTriggerPayLoad(value: Double(noteOn.note.number), value2: noteOn.velocity.unitIntervalValue, message: "")
+                
+                let mappingsMatched = self.mappingsMidiNote.filter({ mapping in
+                    mapping.key.note == note
+                })
+                                
+                mappingsMatched.forEach { (key, trigger) in
+                    trigger(payload)
+                }
+                
+            default:
+                break
+            }
+        }
+    }
 }
 
-// MARK: - MidiNoteb Mappings
+// MARK: - MidiNote Mappings
 extension TKBus {
     public func addMapping(action: V, note: TKTriggerMidiNote, trigger: @escaping TriggerCallback) {
         let mapping = MappingMidiNote(action: action, note: note)

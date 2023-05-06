@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TriggerKit
 
 struct AppTabView: View {
     var body: some View {
@@ -22,6 +23,13 @@ struct AppTabView: View {
             }
             .tabItem {
                 Label("Mapping", systemImage: "switch.2")
+            }
+            
+            NavigationView {
+                TKBluetoothMIDIView()
+            }
+            .tabItem {
+                Label("Mapping", image: "logo.bluetooth")
             }
         }
     }

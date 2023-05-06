@@ -27,6 +27,11 @@ struct ActionsView: View {
             }
         }
         .navigationTitle("Actions")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Toggle("Midi Learn", isOn: $actionsViewModel.midiLearn)
+            }
+        }
     }
     
     @ViewBuilder func actionView(appAction: AppAction) -> some View {
@@ -46,12 +51,15 @@ struct ActionsView: View {
     }
     
     @ViewBuilder func midiReceiveView() -> some View {
-        HStack {
-            Spacer()
-            Text(actionsViewModel.eventString)
-                .font(.caption)
-                .padding(8)
-            Spacer()
+        VStack {
+            Text("Incoming midi events")
+            HStack {
+                Spacer()
+                Text(actionsViewModel.eventString)
+                    .font(.caption)
+                    .padding(8)
+                Spacer()
+            }
         }
         .background {
             Color.blue

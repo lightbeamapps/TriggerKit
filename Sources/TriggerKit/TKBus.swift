@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  TKBus.swift
 //  
 //
 //  Created by dave on 3/05/23.
@@ -34,60 +34,7 @@ public struct TKBusConfig {
 
 public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     // MARK: - Data types
-    public typealias TriggerCallback = (TKTriggerPayLoad) -> Void
     
-    internal class TKOperation: Operation {
-        
-        private var callback: (Bool) -> Void
-        private var payload: TKTriggerPayLoad
-        
-        init(callback: @escaping (Bool) -> Void,
-             payload: TKTriggerPayLoad) {
-            self.callback = callback
-            self.payload = payload
-            
-            super.init()
-        }
-        
-        override func main() {
-            callback(isCancelled)
-        }
-    }
-    
-    internal class TriggerHolder {
-        private var operationQueue: OperationQueue = {
-            let operationQueue = OperationQueue()
-            operationQueue.qualityOfService = .userInteractive
-            operationQueue.maxConcurrentOperationCount = 1
-            operationQueue.underlyingQueue = DispatchQueue.main
-            return operationQueue
-        }()
-        
-        private var callback: TriggerCallback
-        private var lastPayload: TKTriggerPayLoad?
-        
-        init(callback: @escaping TriggerCallback) {
-            self.callback = callback
-        }
-        
-        internal func addPayloadOperation(_ payload: TKTriggerPayLoad) {
-            if let lastPayload, lastPayload == payload {
-                return
-            } else {
-                self.operationQueue.cancelAllOperations()
-                self.lastPayload = payload
-                self.operationQueue.addOperation(TKOperation(callback: { isCancelled in
-                    self.lastPayload = nil
-                    guard !isCancelled else {
-                        print("cancelled")
-                        return }
-                    
-                    self.callback(payload)
-                }, payload: payload))
-            }
-        }
-        
-    }
     public struct MappingMidiNote: Codable, Hashable {
         var action: V
         var note: TKTriggerMidiNote
@@ -112,8 +59,8 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     // MARK: - Private properties
     private var config: TKBusConfig
     
-    private var mappingsMidiNote: [MappingMidiNote: TriggerHolder] = [:]
-    private var mappingsMidiCC: [MappingMidiCC: TriggerHolder] = [:]
+    private var mappingsMidiNote: [MappingMidiNote: TKTriggerHolder] = [:]
+    private var mappingsMidiCC: [MappingMidiCC: TKTriggerHolder] = [:]
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -203,29 +150,13 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
         }
     }
     
-    private func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKTriggerPayLoad {
-        
-        
-        let payload = TKTriggerPayLoad(value: roundDouble(value),
-                                       value2: roundDouble(value2),
-                                       message: message)
-        return payload
-    }
-    
-    private func roundDouble(_ value: Double?) -> Double? {
-        guard let value else { return nil }
-        
-        let roundedValue = (value * 10 * Double(config.granularity)).rounded()
-        
-        return roundedValue / (10 * Double(config.granularity))
-    }
 }
 
 // MARK: - MidiNote Mappings
 extension TKBus {
     public func addMapping(action: V, note: TKTriggerMidiNote, trigger: @escaping TriggerCallback) {
         let mapping = MappingMidiNote(action: action, note: note)
-        let holder = TriggerHolder(callback: trigger)
+        let holder = TKTriggerHolder(callback: trigger)
         self.mappingsMidiNote[mapping] = holder
     }
     
@@ -239,7 +170,7 @@ extension TKBus {
     
     public func addMapping(action: V, cc: TKTriggerMidiCC, trigger: @escaping TriggerCallback) {
         let mapping = MappingMidiCC(action: action, cc: cc)
-        let holder = TriggerHolder(callback: trigger)
+        let holder = TKTriggerHolder(callback: trigger)
         self.mappingsMidiCC[mapping] = holder
     }
     
@@ -247,4 +178,23 @@ extension TKBus {
         self.mappingsMidiCC[mapping] = nil
     }
     
+}
+
+// MARK: - Convenience functions
+extension TKBus {
+    
+    internal func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKTriggerPayLoad {
+        let payload = TKTriggerPayLoad(value: roundDouble(value),
+                                       value2: roundDouble(value2),
+                                       message: message)
+        return payload
+    }
+    
+    internal func roundDouble(_ value: Double?) -> Double? {
+        guard let value else { return nil }
+        
+        let roundedValue = (value * 10 * Double(config.granularity)).rounded()
+        
+        return roundedValue / (10 * Double(config.granularity))
+    }
 }

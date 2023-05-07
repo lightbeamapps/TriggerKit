@@ -8,14 +8,13 @@
 import Foundation
 
 public struct TKTriggerMidiNote: Codable, Hashable {
-    /// The controller that triggers, if null then any note from any controller triggers
-    public var controller: TKController?
     public var note: Int
+    public var noteString: String
     public var noteOn: Bool
 
-    public init(controller: TKController? = nil, note: Int, noteOn: Bool = true) {
-        self.controller = controller
+    public init(note: Int, noteString: String, noteOn: Bool = true) {
         self.note = note
+        self.noteString = noteString
         self.noteOn = noteOn
     }
 }

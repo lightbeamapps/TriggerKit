@@ -25,6 +25,7 @@ internal class TKTriggerHolder {
     
     internal func addPayloadOperation(_ payload: TKTriggerPayLoad) {
         if let lastPayload, lastPayload == payload {
+            // Lets not retrigger things again if we're already in the process of doing so
             return
         } else {
             self.operationQueue.cancelAllOperations()

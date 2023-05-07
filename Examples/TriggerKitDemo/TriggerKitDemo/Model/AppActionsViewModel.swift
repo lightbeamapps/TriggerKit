@@ -45,27 +45,29 @@ public class AppActionsViewModel: ObservableObject {
                                                            model: "SwiftUI",
                                                            manufacturer: "lightbeamapps",
                                                            inputConnectionName: "TriggerKitDemo",
-                                                           granularity: 4))
+                                                           decimalPlaces: 4))
     
     init() {
         try? bus.midiStart()
-        self.setBindings()
         self.startup()
     }
     
-    func setBindings() {
-        Task {
-            for await value in bus.$eventString.values {
-                await updateEventString(value)
-            }
+    func updateEventString(_ event: TKTriggerEvent) {
+        switch event {
+        case .midiCC(let trigger):
+            self.eventString = "CC: \(trigger.cc)"
+        case .midiNote(let trigger):
+            self.eventString = "Note: \(trigger.note), \(trigger.noteString)"
         }
     }
     
-    @MainActor func updateEventString(_ value: String) async {
-        self.eventString = value
-    }
-    
     func startup() {
+        bus.setEventCallback { event in
+            if let event {
+                self.updateEventString(event)
+            }
+        }
+        
         // Decode our mapped actions then loop through and all them appropriately
         
         // Register mappings

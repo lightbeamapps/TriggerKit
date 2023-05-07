@@ -14,27 +14,26 @@ public struct TKBusConfig {
     public var model: String
     public var manufacturer: String
     public var inputConnectionName: String
-    public var granularity: Int
+    public var decimalPlaces: Int
     public var throttleRate: Double
     
     public init(clientName: String,
                 model: String,
                 manufacturer: String,
                 inputConnectionName: String,
-                granularity: Int = 2,
+                decimalPlaces: Int = 2,
                 throttleRate: Double = 1 / 120) {
         self.clientName = clientName
         self.model = model
         self.manufacturer = manufacturer
         self.inputConnectionName = inputConnectionName
-        self.granularity = granularity
+        self.decimalPlaces = decimalPlaces
         self.throttleRate = throttleRate
     }
 }
 
 public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     // MARK: - Data types
-    
     public struct MappingMidiNote: Codable, Hashable {
         var action: V
         var note: TKTriggerMidiNote
@@ -46,8 +45,7 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     }
     
     // MARK: - Published public properties
-    @Published public var eventString: String = ""
-    @Published public var midiEvents: [TKTriggerMidiNote] = []
+    @Published public var event: TKTriggerEvent?
     
     // MARK: - Published private properties
     @Published private var latestNoteEvent: MIDIEvent?
@@ -61,6 +59,7 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     
     private var mappingsMidiNote: [MappingMidiNote: TKTriggerHolder] = [:]
     private var mappingsMidiCC: [MappingMidiCC: TKTriggerHolder] = [:]
+    private var eventCallback: TKTriggerEventCallback?
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -83,6 +82,13 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     
     private func setBindings() {
         self.$latestCCEvent
+            .sink { event in
+                guard let event else { return }
+                self.handleMidiEvent(event)
+            }
+            .store(in: &cancellables)
+        
+        self.$latestNoteEvent
             .sink { event in
                 guard let event else { return }
                 self.handleMidiEvent(event)
@@ -118,11 +124,11 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     }
     
     private func handleMidiEvent(_ event: MIDIEvent) {
-        self.eventString = event.description
+        logEvent(TKTriggerEvent.createEventFrom(midiEvent: event))
         
         switch event {
         case .noteOn(let noteOn):
-            let note = TKTriggerMidiNote(note: Int(noteOn.note.number))
+            let note = TKTriggerMidiNote(note: Int(noteOn.note.number), noteString: noteOn.note.stringValue())
             let payload = createPayload(value: Double(noteOn.note.number), value2: noteOn.velocity.unitIntervalValue)
             
             let mappingsMatched = self.mappingsMidiNote.filter({ mapping in
@@ -180,6 +186,17 @@ extension TKBus {
     
 }
 
+// MARK: - Event Mappings
+extension TKBus {
+    public func setEventCallback(_ callback: TKTriggerEventCallback?) {
+        eventCallback = callback
+    }
+    
+    public func removeEventCallback() {
+        eventCallback = nil
+    }
+}
+
 // MARK: - Convenience functions
 extension TKBus {
     
@@ -193,8 +210,15 @@ extension TKBus {
     internal func roundDouble(_ value: Double?) -> Double? {
         guard let value else { return nil }
         
-        let roundedValue = (value * 10 * Double(config.granularity)).rounded()
+        let roundedValue = (value * 10 * Double(config.decimalPlaces)).rounded()
         
-        return roundedValue / (10 * Double(config.granularity))
+        return roundedValue / (10 * Double(config.decimalPlaces))
     }
+    
+    internal func logEvent(_ event: TKTriggerEvent?) {
+        DispatchQueue.main.async { [weak self] in
+            self?.eventCallback?(event)
+        }
+    }
+    
 }

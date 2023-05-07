@@ -16,7 +16,7 @@ public enum AppAction: String, Codable, Hashable, CaseIterable, Equatable {
     case updateToggle2
 }
 
-@MainActor public class AppActionsViewModel: ObservableObject {
+public class AppActionsViewModel: ObservableObject {
     
     // The mapping of the app action to the trigger, this is stored on disk
     public struct MidiNoteMapping: Codable, Hashable {
@@ -69,38 +69,33 @@ public enum AppAction: String, Codable, Hashable, CaseIterable, Equatable {
         // Decode our mapped actions then loop through and all them appropriately
         
         // Register mappings
-        bus.addMapping(action: .updateSlider1, cc: .init(cc: 33)) { [unowned self] payload in
-            print(payload.value)
-            Task { self.updateSlider(slider: &slider1, value: payload.value) }
+        bus.addMapping(action: .updateSlider1, cc: .init(cc: 2)) { [unowned self] payload in
+            self.updateSlider(slider: &slider1, value: payload.value)
         }
         
-        bus.addMapping(action: .updateSlider1, cc: .init(cc: 34)) { [unowned self] payload in
-            Task { self.updateSlider(slider: &slider2, value: payload.value) }
+        bus.addMapping(action: .updateSlider1, cc: .init(cc: 3)) { [unowned self] payload in
+            self.updateSlider(slider: &slider2, value: payload.value)
         }
         
-        bus.addMapping(action: .updateToggle1, cc: .init(cc: 35)) { [unowned self] payload in
-            Task { self.updateSlider(slider: &slider3, value: payload.value) }
+        bus.addMapping(action: .updateSlider3, cc: .init(cc: 4)) { [unowned self] payload in
+            self.updateSlider(slider: &slider3, value: payload.value)
         }
         
-        bus.addMapping(action: .updateToggle2, note: .init(note: 60)) { [unowned self] payload in
-            Task {
-                self.flipToggle(toggle: &toggle1)
-            }
+        bus.addMapping(action: .updateToggle1, cc: .init(cc: 23)) { [unowned self] payload in
+            self.flipToggle(toggle: &toggle1)
         }
         
-        bus.addMapping(action: .updateToggle2, note: .init(note: 62)) { [unowned self] payload in
-            Task {
-                self.flipToggle(toggle: &toggle2)
-            }
+        bus.addMapping(action: .updateToggle2, cc: .init(cc: 33)) { [unowned self] payload in
+            self.flipToggle(toggle: &toggle2)
         }
     }
     
-    @MainActor func updateSlider(slider: inout Double, value: Double?) {
+    func updateSlider(slider: inout Double, value: Double?) {
         guard let value else { return }
         slider = value
     }
     
-    @MainActor func flipToggle(toggle: inout Bool) {
+    func flipToggle(toggle: inout Bool) {
         toggle.toggle()
     }
     

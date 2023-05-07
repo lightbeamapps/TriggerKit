@@ -14,6 +14,7 @@ struct AppTabView: View {
             NavigationView {
                 DemoView()
             }
+            .navigationViewStyle(.stack)
             .tabItem {
                 Label("Demo", systemImage: "play.circle")
             }
@@ -21,6 +22,7 @@ struct AppTabView: View {
             NavigationView {
                 ActionsView()
             }
+            .navigationViewStyle(.stack)
             .tabItem {
                 Label("Mapping", systemImage: "switch.2")
             }
@@ -28,6 +30,7 @@ struct AppTabView: View {
             NavigationView {
                 TKBluetoothMIDIView()
             }
+            .navigationViewStyle(.stack)
             .tabItem {
                 Label("Mapping", image: "logo.bluetooth")
             }

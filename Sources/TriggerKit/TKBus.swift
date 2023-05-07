@@ -14,12 +14,18 @@ public struct TKBusConfig {
     public var model: String
     public var manufacturer: String
     public var inputConnectionName: String
+    public var granularity: Int
     
-    public init(clientName: String, model: String, manufacturer: String, inputConnectionName: String) {
+    public init(clientName: String,
+                model: String,
+                manufacturer: String,
+                inputConnectionName: String,
+                granularity: Int = 2) {
         self.clientName = clientName
         self.model = model
         self.manufacturer = manufacturer
         self.inputConnectionName = inputConnectionName
+        self.granularity = granularity
     }
 }
 
@@ -89,7 +95,7 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
             switch event {
             case .noteOn(let noteOn):
                 let note = TKTriggerMidiNote(note: Int(noteOn.note.number))
-                let payload = TKTriggerPayLoad(value: Double(noteOn.note.number), value2: noteOn.velocity.unitIntervalValue, message: "")
+                let payload = createPayload(value: Double(noteOn.note.number), value2: noteOn.velocity.unitIntervalValue)
                 
                 let mappingsMatched = self.mappingsMidiNote.filter({ mapping in
                     mapping.key.note == note
@@ -99,10 +105,39 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
                     trigger(payload)
                 }
                 
+            case .cc(let ccEvent):
+                let cc = TKTriggerMidiCC(cc: Int(ccEvent.controller.number))
+                let payload = createPayload(value: ccEvent.value.unitIntervalValue)
+
+                let mappingsMatched = self.mappingsMidiCC.filter({ mapping in
+                    mapping.key.cc == cc
+                })
+                                
+                mappingsMatched.forEach { (key, trigger) in
+                    trigger(payload)
+                }
+
             default:
                 break
             }
         }
+    }
+    
+    private func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKTriggerPayLoad {
+    
+        
+        let payload = TKTriggerPayLoad(value: roundDouble(value),
+                                       value2: roundDouble(value2),
+                                       message: message)
+        return payload
+    }
+    
+    private func roundDouble(_ value: Double?) -> Double? {
+        guard let value else { return nil }
+        
+        let roundedValue = (value * 10 * Double(config.granularity)).rounded()
+        
+        return roundedValue / (10 * Double(config.granularity))
     }
 }
 

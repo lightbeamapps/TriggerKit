@@ -27,4 +27,13 @@ public enum TKEvent: Codable, Hashable {
             return nil
         }
     }
+    
+    public func name() -> String {
+        switch self {
+        case .midiCC(let trigger):
+            return "CC: \(trigger.cc)"
+        case .midiNote(let trigger):
+            return "Note: \(trigger.note), \(trigger.noteString)"
+        }
+    }
 }

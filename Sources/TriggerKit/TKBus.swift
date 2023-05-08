@@ -32,7 +32,7 @@ public struct TKBusConfig {
     }
 }
 
-public struct TKMapping<V> where V: TKAppActionConstraints  {
+public struct TKMapping<V>: Hashable where V: TKAppActionConstraints  {
     public var id: UUID
     public var appAction: V
     public var event: TKEvent
@@ -47,7 +47,8 @@ public struct TKMapping<V> where V: TKAppActionConstraints  {
 public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
     // MARK: - Published public properties
     @Published public var event: TKEvent?
-    
+    @Published public var mappings: [TKMapping<V>] = []
+
     // MARK: - Published private properties
     @Published private var latestNoteEvent: MIDIEvent?
     @Published private var latestCCEvent: MIDIEvent?
@@ -58,7 +59,6 @@ public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
     // MARK: - Private properties
     private var config: TKBusConfig
     
-    private var mappings: [TKMapping<V>] = []
     private var callbacks: [UUID: TKPayloadCallback] = [:]
         
     private var eventCallback: TKEventCallback?
@@ -160,17 +160,27 @@ public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
 extension TKBus {
     
     public func addMapping(_ mapping: TKMapping<V>, callback: @escaping TKPayloadCallback) {
-        self.removeMapping(mapping) // Replace the existing mapping
-        self.mappings.append(mapping)
-        self.callbacks[mapping.id] = callback
+        DispatchQueue.main.async { [weak self] in
+            self?.mappings.removeAll { item in
+                item.id == mapping.id
+            }
+            
+            self?.callbacks[mapping.id] = nil
+            
+            self?.mappings.append(mapping)
+            
+            self?.callbacks[mapping.id] = callback
+        }
     }
     
     public func removeMapping(_ mapping: TKMapping<V>) {
-        self.mappings.removeAll { item in
-            item.id == mapping.id
+        DispatchQueue.main.async { [weak self] in
+            self?.mappings.removeAll { item in
+                item.id == mapping.id
+            }
+            
+            self?.callbacks[mapping.id] = nil
         }
-                
-        self.callbacks[mapping.id] = nil
     }
     
 }

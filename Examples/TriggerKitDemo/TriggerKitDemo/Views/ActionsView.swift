@@ -11,13 +11,11 @@ import TriggerKit
 struct ActionsView: View {
     @EnvironmentObject var actionsViewModel: AppActionsViewModel
     
-    @State var currentAction: AppAction?
-    
     var body: some View {
         ZStack {
             List {
-                ForEach(AppAction.allCases, id: \.self) { appAction in
-                    actionView(appAction: appAction)
+                ForEach(actionsViewModel.bus.mappings, id: \.self) { mapping in
+                    actionView(mapping: mapping)
                 }
             }
             
@@ -34,20 +32,19 @@ struct ActionsView: View {
         }
     }
     
-    @ViewBuilder func actionView(appAction: AppAction) -> some View {
+    @ViewBuilder func actionView(mapping: TKMapping<AppAction>) -> some View {
         Button {
-            self.currentAction = appAction
+            self.actionsViewModel.setMapping(mapping)
         } label: {
             HStack {
-                Text(appAction.rawValue)
+                Text(mapping.appAction.rawValue)
                 
                 Spacer()
                 
-                if currentAction == appAction {
-                    Image(systemName: "checkmark.circle.fill")
-                }
+                Text(mapping.event.name())
             }
         }
+        .disabled(!self.actionsViewModel.midiLearn)
     }
     
     @ViewBuilder func midiReceiveView() -> some View {
@@ -55,7 +52,7 @@ struct ActionsView: View {
             Text("Incoming midi events")
             HStack {
                 Spacer()
-                Text(actionsViewModel.eventString)
+                Text(actionsViewModel.currentEvent?.name() ?? "")
                     .font(.caption)
                     .padding(8)
                 Spacer()

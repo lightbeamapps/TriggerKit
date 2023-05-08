@@ -36,40 +36,32 @@ public class AppActionsViewModel: ObservableObject {
     @Published var slider3: Double = 0.0
     @Published var toggle1: Bool = false
     @Published var toggle2: Bool = false
-    @Published var eventString: String = ""
+    @Published var currentEvent: TKEvent?
     
     @Published var midiLearn: Bool = false
     
     // MARK: - Private properties
-    private let bus = TKBus<AppAction>(config: TKBusConfig(clientName: "TriggerKitDemo",
-                                                           model: "SwiftUI",
-                                                           manufacturer: "lightbeamapps",
-                                                           inputConnectionName: "TriggerKitDemo",
-                                                           decimalPlaces: 4))
+    public let bus = TKBus<AppAction>(config: TKBusConfig(clientName: "TriggerKitDemo",
+                                                          model: "SwiftUI",
+                                                          manufacturer: "lightbeamapps",
+                                                          inputConnectionName: "TriggerKitDemo",
+                                                          decimalPlaces: 4))
     
     init() {
         try? bus.midiStart()
         self.startup()
     }
     
-    func updateEventString(_ event: TKEvent) {
-        switch event {
-        case .midiCC(let trigger):
-            self.eventString = "CC: \(trigger.cc)"
-        case .midiNote(let trigger):
-            self.eventString = "Note: \(trigger.note), \(trigger.noteString)"
-        }
-    }
-    
-    func startup() {
+    private func startup() {
         bus.setEventCallback { event in
             if let event {
-                self.updateEventString(event)
+                DispatchQueue.main.async { [unowned self] in
+                    self.currentEvent = event
+                }
             }
         }
         
         // Decode our mapped actions then loop through and all them appropriately
-        
         // Register mappings
         bus.addMapping(.init(appAction: .updateSlider1,
                              event: .midiCC(trigger: .init(cc: 2)))) { [unowned self] payload in
@@ -97,13 +89,53 @@ public class AppActionsViewModel: ObservableObject {
         }
     }
     
-    func updateSlider(slider: inout Double, value: Double?) {
+    private func updateSlider(slider: inout Double, value: Double?) {
         guard let value else { return }
         slider = value
     }
     
-    func flipToggle(toggle: inout Bool) {
+    private func flipToggle(toggle: inout Bool) {
         toggle.toggle()
     }
     
+}
+
+extension AppActionsViewModel {
+    public func setMapping(_ mapping: TKMapping<AppAction>) {
+        guard let currentEvent else { return }
+        
+        self.bus.removeMapping(mapping)
+        
+        var mapping = mapping
+        mapping.event = currentEvent
+        let callback = callbackForAction(mapping.appAction)
+        self.bus.addMapping(mapping, callback: callback)
+    }
+}
+
+extension AppActionsViewModel {
+    private func callbackForAction(_ action: AppAction) -> TKPayloadCallback {
+        switch action {
+        case .updateSlider1:
+            return { [unowned self] payload in
+                self.updateSlider(slider: &slider1, value: payload.value)
+            }
+        case .updateSlider2:
+            return { [unowned self] payload in
+                self.updateSlider(slider: &slider2, value: payload.value)
+            }
+        case .updateSlider3:
+            return { [unowned self] payload in
+                self.updateSlider(slider: &slider3, value: payload.value)
+            }
+        case .updateToggle1:
+            return { [unowned self] payload in
+                self.flipToggle(toggle: &toggle1)
+            }
+        case .updateToggle2:
+            return { [unowned self] payload in
+                self.flipToggle(toggle: &toggle2)
+            }
+        }
+    }
 }

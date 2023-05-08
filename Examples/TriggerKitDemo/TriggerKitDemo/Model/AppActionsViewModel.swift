@@ -52,7 +52,7 @@ public class AppActionsViewModel: ObservableObject {
         self.startup()
     }
     
-    func updateEventString(_ event: TKTriggerEvent) {
+    func updateEventString(_ event: TKEvent) {
         switch event {
         case .midiCC(let trigger):
             self.eventString = "CC: \(trigger.cc)"
@@ -71,23 +71,28 @@ public class AppActionsViewModel: ObservableObject {
         // Decode our mapped actions then loop through and all them appropriately
         
         // Register mappings
-        bus.addMapping(action: .updateSlider1, cc: .init(cc: 2)) { [unowned self] payload in
+        bus.addMapping(.init(appAction: .updateSlider1,
+                             event: .midiCC(trigger: .init(cc: 2)))) { [unowned self] payload in
             self.updateSlider(slider: &slider1, value: payload.value)
         }
         
-        bus.addMapping(action: .updateSlider1, cc: .init(cc: 3)) { [unowned self] payload in
+        bus.addMapping(.init(appAction: .updateSlider2,
+                             event: .midiCC(trigger: .init(cc: 3)))) { [unowned self] payload in
             self.updateSlider(slider: &slider2, value: payload.value)
         }
         
-        bus.addMapping(action: .updateSlider3, cc: .init(cc: 4)) { [unowned self] payload in
+        bus.addMapping(.init(appAction: .updateSlider3,
+                             event: .midiCC(trigger: .init(cc: 4)))) { [unowned self] payload in
             self.updateSlider(slider: &slider3, value: payload.value)
         }
         
-        bus.addMapping(action: .updateToggle1, cc: .init(cc: 23)) { [unowned self] payload in
+        bus.addMapping(.init(appAction: .updateToggle1,
+                             event: .midiCC(trigger: .init(cc: 23)))) { [unowned self] payload in
             self.flipToggle(toggle: &toggle1)
         }
         
-        bus.addMapping(action: .updateToggle2, cc: .init(cc: 33)) { [unowned self] payload in
+        bus.addMapping(.init(appAction: .updateToggle2,
+                             event: .midiCC(trigger: .init(cc: 33)))) { [unowned self] payload in
             self.flipToggle(toggle: &toggle2)
         }
     }

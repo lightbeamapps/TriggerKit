@@ -32,8 +32,23 @@ public struct TKBusConfig {
     }
 }
 
-public class TKBus<V: TKAppActionConstraints>: ObservableObject {
+public struct TKMapping<V> where V: TKAppActionConstraints  {
+    public var id: UUID
+    public var appAction: V
+    public var event: TKEvent
+    
+    public init(id: UUID = UUID(), appAction: V, event: TKEvent) {
+        self.id = id
+        self.appAction = appAction
+        self.event = event
+    }
+}
+
+public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
     // MARK: - Data types
+    
+
+    
     public struct MappingMidiNote: Codable, Hashable {
         var action: V
         var note: TKTriggerMidiNote
@@ -45,7 +60,7 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     }
     
     // MARK: - Published public properties
-    @Published public var event: TKTriggerEvent?
+    @Published public var event: TKEvent?
     
     // MARK: - Published private properties
     @Published private var latestNoteEvent: MIDIEvent?
@@ -57,9 +72,12 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     // MARK: - Private properties
     private var config: TKBusConfig
     
+    private var mappings: [TKMapping<V>] = []
+    private var callbacks: [UUID: TKPayloadCallback] = [:]
+        
     private var mappingsMidiNote: [MappingMidiNote: TKTriggerHolder] = [:]
     private var mappingsMidiCC: [MappingMidiCC: TKTriggerHolder] = [:]
-    private var eventCallback: TKTriggerEventCallback?
+    private var eventCallback: TKEventCallback?
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -112,83 +130,70 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
     
     private func processMidiEvents(_ events: [MIDIEvent]) {
         events.forEach({ event in
-            switch event {
-            case .noteOn, .noteOff:
-                self.latestNoteEvent = event
-            case .cc:
-                self.latestCCEvent = event
-            default:
-                break;
-            }
+            handleMidiEvent(event)
         })
     }
     
-    private func handleMidiEvent(_ event: MIDIEvent) {
-        logEvent(TKTriggerEvent.createEventFrom(midiEvent: event))
+    private func handleMidiEvent(_ midiEvent: MIDIEvent) {
+        guard
+            let event = TKEvent.createEventFrom(midiEvent: midiEvent),
+            let payload = createPayload(midiEvent)
+        else {
+            return
+        }
         
-        switch event {
-        case .noteOn(let noteOn):
-            let note = TKTriggerMidiNote(note: Int(noteOn.note.number), noteString: noteOn.note.stringValue())
-            let payload = createPayload(value: Double(noteOn.note.number), value2: noteOn.velocity.unitIntervalValue)
+        DispatchQueue.main.async { [weak self] in
+            self?.eventCallback?(event)
+        }
+                
+        let mappings = self.mappings.filter({ $0.event == event })
+        
+        mappings.forEach { mapping in
+            guard let callback = self.callbacks[mapping.id] else { return }
             
-            let mappingsMatched = self.mappingsMidiNote.filter({ mapping in
-                mapping.key.note == note
-            })
-            
-            mappingsMatched.forEach { (key, holder) in
-                holder.addPayloadOperation(payload)
+            DispatchQueue.main.async {
+                callback(payload)
             }
-            
-        case .cc(let ccEvent):
-            let cc = TKTriggerMidiCC(cc: Int(ccEvent.controller.number))
-            let payload = createPayload(value: ccEvent.value.unitIntervalValue)
-            
-            let mappingsMatched = self.mappingsMidiCC.filter({ mapping in
-                mapping.key.cc == cc
-            })
-            
-            mappingsMatched.forEach { (key, holder) in
-                holder.addPayloadOperation(payload)
-            }
-            
-        default:
-            break
         }
     }
     
+    private func createPayload(_ event: MIDIEvent) -> TKPayLoad? {
+        switch event {
+        case .noteOn(let noteOn):
+            return createPayload(value: Double(noteOn.note.number), value2: noteOn.velocity.unitIntervalValue)
+        case .cc(let ccEvent):
+            return createPayload(value: ccEvent.value.unitIntervalValue)
+        default:
+            break
+        }
+        
+        return nil
+    }
+    
 }
 
-// MARK: - MidiNote Mappings
-extension TKBus {
-    public func addMapping(action: V, note: TKTriggerMidiNote, trigger: @escaping TriggerCallback) {
-        let mapping = MappingMidiNote(action: action, note: note)
-        let holder = TKTriggerHolder(callback: trigger)
-        self.mappingsMidiNote[mapping] = holder
-    }
-    
-    public func removeMapping(_ mapping: MappingMidiNote) {
-        self.mappingsMidiNote[mapping] = nil
-    }
-}
-
-// MARK: - MidiCC Mappings
+// MARK: - TKEvent Mappings
 extension TKBus {
     
-    public func addMapping(action: V, cc: TKTriggerMidiCC, trigger: @escaping TriggerCallback) {
-        let mapping = MappingMidiCC(action: action, cc: cc)
-        let holder = TKTriggerHolder(callback: trigger)
-        self.mappingsMidiCC[mapping] = holder
+    public func addMapping(_ mapping: TKMapping<V>, callback: @escaping TKPayloadCallback) {
+        self.removeMapping(mapping) // Replace the existing mapping
+        self.mappings.append(mapping)
+        self.callbacks[mapping.id] = callback
     }
     
-    public func removeMapping(_ mapping: MappingMidiCC) {
-        self.mappingsMidiCC[mapping] = nil
+    public func removeMapping(_ mapping: TKMapping<V>) {
+        self.mappings.removeAll { item in
+            item.id == mapping.id
+        }
+                
+        self.callbacks[mapping.id] = nil
     }
     
 }
 
 // MARK: - Event Mappings
 extension TKBus {
-    public func setEventCallback(_ callback: TKTriggerEventCallback?) {
+    public func setEventCallback(_ callback: TKEventCallback?) {
         eventCallback = callback
     }
     
@@ -200,8 +205,8 @@ extension TKBus {
 // MARK: - Convenience functions
 extension TKBus {
     
-    internal func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKTriggerPayLoad {
-        let payload = TKTriggerPayLoad(value: roundDouble(value),
+    internal func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKPayLoad {
+        let payload = TKPayLoad(value: roundDouble(value),
                                        value2: roundDouble(value2),
                                        message: message)
         return payload
@@ -215,7 +220,7 @@ extension TKBus {
         return roundedValue / (10 * Double(config.decimalPlaces))
     }
     
-    internal func logEvent(_ event: TKTriggerEvent?) {
+    internal func logEvent(_ event: TKEvent?) {
         DispatchQueue.main.async { [weak self] in
             self?.eventCallback?(event)
         }

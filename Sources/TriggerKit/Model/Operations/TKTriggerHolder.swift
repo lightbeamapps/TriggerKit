@@ -16,14 +16,14 @@ internal class TKTriggerHolder {
         return operationQueue
     }()
     
-    private var callback: TriggerCallback
-    private var lastPayload: TKTriggerPayLoad?
+    private var callback: TKPayloadCallback
+    private var lastPayload: TKPayLoad?
     
-    init(callback: @escaping TriggerCallback) {
+    init(callback: @escaping TKPayloadCallback) {
         self.callback = callback
     }
     
-    internal func addPayloadOperation(_ payload: TKTriggerPayLoad) {
+    internal func addPayloadOperation(_ payload: TKPayLoad) {
         if let lastPayload, lastPayload == payload {
             // Lets not retrigger things again if we're already in the process of doing so
             return

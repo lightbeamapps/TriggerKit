@@ -10,10 +10,10 @@ import Foundation
 internal class TKOperation: Operation {
     
     private var callback: (Bool) -> Void
-    private var payload: TKTriggerPayLoad
+    private var payload: TKPayLoad
     
     init(callback: @escaping (Bool) -> Void,
-         payload: TKTriggerPayLoad) {
+         payload: TKPayLoad) {
         self.callback = callback
         self.payload = payload
         

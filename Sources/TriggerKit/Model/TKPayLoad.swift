@@ -7,9 +7,9 @@
 
 import Foundation
 
-public typealias TriggerCallback = (TKTriggerPayLoad) -> Void
+public typealias TKPayloadCallback = (TKPayLoad) -> Void
 
-public struct TKTriggerPayLoad: Codable, Hashable {
+public struct TKPayLoad: Codable, Hashable {
     /// Ranges from -1 to 1 for a gamepad axis, from 0-1.0 for CC values
     public var value: Double?
     

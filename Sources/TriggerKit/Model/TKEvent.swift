@@ -8,14 +8,14 @@
 import Foundation
 import MIDIKit
 
-public typealias TKTriggerEventCallback = (TKTriggerEvent?) -> (Void)
+public typealias TKEventCallback = (TKEvent?) -> (Void)
 
 /// Wrapper for different trigger types, to transport the most recent one back for MIDI learn features
-public enum TKTriggerEvent: Codable, Hashable {
+public enum TKEvent: Codable, Hashable {
     case midiNote(trigger: TKTriggerMidiNote)
     case midiCC(trigger: TKTriggerMidiCC)
     
-    static func createEventFrom(midiEvent: MIDIEvent) -> TKTriggerEvent? {
+    static func createEventFrom(midiEvent: MIDIEvent) -> TKEvent? {
         switch midiEvent {
         case .noteOn(let noteOn):
             let trigger = TKTriggerMidiNote(note: Int(noteOn.note.number), noteString: noteOn.note.stringValue())

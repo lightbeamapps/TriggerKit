@@ -45,20 +45,6 @@ public struct TKMapping<V> where V: TKAppActionConstraints  {
 }
 
 public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
-    // MARK: - Data types
-    
-
-    
-    public struct MappingMidiNote: Codable, Hashable {
-        var action: V
-        var note: TKTriggerMidiNote
-    }
-    
-    public struct MappingMidiCC: Codable, Hashable {
-        var action: V
-        var cc: TKTriggerMidiCC
-    }
-    
     // MARK: - Published public properties
     @Published public var event: TKEvent?
     
@@ -75,8 +61,6 @@ public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
     private var mappings: [TKMapping<V>] = []
     private var callbacks: [UUID: TKPayloadCallback] = [:]
         
-    private var mappingsMidiNote: [MappingMidiNote: TKTriggerHolder] = [:]
-    private var mappingsMidiCC: [MappingMidiCC: TKTriggerHolder] = [:]
     private var eventCallback: TKEventCallback?
     
     private var cancellables = Set<AnyCancellable>()

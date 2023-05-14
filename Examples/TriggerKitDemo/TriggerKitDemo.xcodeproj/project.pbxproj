@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		553AAC8B2A09D8D500CA76CB /* PressActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553AAC8A2A09D8D500CA76CB /* PressActions.swift */; };
 		558463BA2A0274EF00646730 /* AppActionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463B92A0274EF00646730 /* AppActionsViewModel.swift */; };
 		558463BD2A02750800646730 /* TriggerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 558463BC2A02750800646730 /* TriggerKit */; };
 		558463BF2A02846D00646730 /* ActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558463BE2A02846D00646730 /* ActionsView.swift */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		553AAC8A2A09D8D500CA76CB /* PressActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PressActions.swift; sourceTree = "<group>"; };
 		558463B82A02524700646730 /* TriggerKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = TriggerKit; path = ../..; sourceTree = "<group>"; };
 		558463B92A0274EF00646730 /* AppActionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppActionsViewModel.swift; sourceTree = "<group>"; };
 		558463BE2A02846D00646730 /* ActionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsView.swift; sourceTree = "<group>"; };
@@ -42,6 +44,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		553AAC8C2A09D8E000CA76CB /* Modifiers */ = {
+			isa = PBXGroup;
+			children = (
+				553AAC8A2A09D8D500CA76CB /* PressActions.swift */,
+			);
+			path = Modifiers;
+			sourceTree = "<group>";
+		};
 		558463B72A02524700646730 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
@@ -98,6 +108,7 @@
 			children = (
 				55F0076A2A062A0700D7D2AE /* Info.plist */,
 				55ABA28D2A0251E0004A84E5 /* TriggerKitDemoApp.swift */,
+				553AAC8C2A09D8E000CA76CB /* Modifiers */,
 				558463C12A0284D000646730 /* Model */,
 				558463C02A0284C800646730 /* Views */,
 				55ABA2912A0251E1004A84E5 /* Assets.xcassets */,
@@ -188,6 +199,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				55ABA2902A0251E0004A84E5 /* AppTabView.swift in Sources */,
+				553AAC8B2A09D8D500CA76CB /* PressActions.swift in Sources */,
 				55ABA28E2A0251E0004A84E5 /* TriggerKitDemoApp.swift in Sources */,
 				558463BA2A0274EF00646730 /* AppActionsViewModel.swift in Sources */,
 				558463C32A02873300646730 /* DemoView.swift in Sources */,

@@ -37,6 +37,7 @@ public class AppActionsViewModel: ObservableObject {
     @Published var toggle1: Bool = false
     @Published var toggle2: Bool = false
     @Published var currentEvent: TKEvent?
+    @Published var currentMapping: TKMapping<AppAction>?
     
     @Published var midiLearn: Bool = false
     
@@ -57,6 +58,15 @@ public class AppActionsViewModel: ObservableObject {
             if let event {
                 DispatchQueue.main.async { [unowned self] in
                     self.currentEvent = event
+                    
+                    if var currentMapping = self.currentMapping {
+                        currentMapping.event = event
+                        
+                        let callback = callbackForAction(currentMapping.appAction)
+                        self.bus.addMapping(currentMapping, callback: callback)
+                        
+                        print("updating mapping")
+                    }
                 }
             }
         }
@@ -101,15 +111,8 @@ public class AppActionsViewModel: ObservableObject {
 }
 
 extension AppActionsViewModel {
-    public func setMapping(_ mapping: TKMapping<AppAction>) {
-        guard let currentEvent else { return }
-        
-        self.bus.removeMapping(mapping)
-        
-        var mapping = mapping
-        mapping.event = currentEvent
-        let callback = callbackForAction(mapping.appAction)
-        self.bus.addMapping(mapping, callback: callback)
+    public func selectMapping(_ mapping: TKMapping<AppAction>?) {
+        self.currentMapping = mapping
     }
 }
 

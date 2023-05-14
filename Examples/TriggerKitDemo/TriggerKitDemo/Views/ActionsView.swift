@@ -33,18 +33,25 @@ struct ActionsView: View {
     }
     
     @ViewBuilder func actionView(mapping: TKMapping<AppAction>) -> some View {
-        Button {
-            self.actionsViewModel.setMapping(mapping)
-        } label: {
-            HStack {
-                Text(mapping.appAction.rawValue)
-                
-                Spacer()
-                
-                Text(mapping.event.name())
-            }
+        HStack {
+            Text(mapping.appAction.rawValue)
+            
+            Spacer()
+            
+            Text(mapping.event.name())
         }
-        .disabled(!self.actionsViewModel.midiLearn)
+        .background {
+            Color(uiColor: .systemBackground)
+        }
+        .pressAction(onPress: {
+            if self.actionsViewModel.midiLearn {
+                print("select mapping")
+                self.actionsViewModel.selectMapping(mapping)
+            }
+        }, onRelease: {
+                print("deselect mapping")
+                self.actionsViewModel.selectMapping(nil)
+        })
     }
     
     @ViewBuilder func midiReceiveView() -> some View {

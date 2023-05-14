@@ -12,9 +12,9 @@ public struct TKTriggerMidiNote: Codable, Hashable {
     public var noteString: String
     public var noteOn: Bool
 
-    public init(note: Int, noteString: String, noteOn: Bool = true) {
+    public init(note: Int, noteString: String? = nil, noteOn: Bool = true) {
         self.note = note
-        self.noteString = noteString
+        self.noteString = noteString ?? "\(note)"
         self.noteOn = noteOn
     }
 }

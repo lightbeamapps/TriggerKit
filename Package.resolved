@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MIDIKit",
       "state" : {
-        "revision" : "e092e53f3e5aafb628c0842931907173967e86de",
-        "version" : "0.8.8"
+        "revision" : "630e42255190701f58b373c41862796e766ff018",
+        "version" : "0.8.9"
       }
     },
     {

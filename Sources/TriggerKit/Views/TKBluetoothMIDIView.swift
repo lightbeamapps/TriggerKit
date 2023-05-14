@@ -10,8 +10,9 @@ import UIKit
 import SwiftUI
 import CoreAudioKit
 
+/// A  SwiftUI view that wraps the CABTMIDICentralViewController
 public struct TKBluetoothMIDIView: UIViewControllerRepresentable {
-    public init() {        
+    public init() {
     }
     
     public func makeUIViewController(context: Context) -> TKBTMIDICentralViewController {
@@ -26,6 +27,7 @@ public struct TKBluetoothMIDIView: UIViewControllerRepresentable {
     public typealias UIViewControllerType = TKBTMIDICentralViewController
 }
 
+/// A  UIKit view controller that wraps the CABTMIDICentralViewController
 public class TKBTMIDICentralViewController: CABTMIDICentralViewController {
     public var uiViewController: UIViewController?
     

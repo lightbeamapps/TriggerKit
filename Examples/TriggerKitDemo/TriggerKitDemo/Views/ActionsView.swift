@@ -11,13 +11,11 @@ import TriggerKit
 struct ActionsView: View {
     @EnvironmentObject var actionsViewModel: AppActionsViewModel
     
-    @State var currentAction: AppAction?
-    
     var body: some View {
         ZStack {
             List {
-                ForEach(AppAction.allCases, id: \.self) { appAction in
-                    actionView(appAction: appAction)
+                ForEach(actionsViewModel.bus.mappings, id: \.self) { mapping in
+                    actionView(mapping: mapping)
                 }
             }
             
@@ -34,20 +32,26 @@ struct ActionsView: View {
         }
     }
     
-    @ViewBuilder func actionView(appAction: AppAction) -> some View {
-        Button {
-            self.currentAction = appAction
-        } label: {
-            HStack {
-                Text(appAction.rawValue)
-                
-                Spacer()
-                
-                if currentAction == appAction {
-                    Image(systemName: "checkmark.circle.fill")
-                }
-            }
+    @ViewBuilder func actionView(mapping: TKMapping<AppAction>) -> some View {
+        HStack {
+            Text(mapping.appAction.rawValue)
+            
+            Spacer()
+            
+            Text(mapping.event.name())
         }
+        .background {
+            Color(uiColor: .systemBackground)
+        }
+        .pressAction(onPress: {
+            if self.actionsViewModel.midiLearn {
+                print("select mapping")
+                self.actionsViewModel.selectMapping(mapping)
+            }
+        }, onRelease: {
+                print("deselect mapping")
+                self.actionsViewModel.selectMapping(nil)
+        })
     }
     
     @ViewBuilder func midiReceiveView() -> some View {
@@ -55,7 +59,7 @@ struct ActionsView: View {
             Text("Incoming midi events")
             HStack {
                 Spacer()
-                Text(actionsViewModel.eventString)
+                Text(actionsViewModel.currentEvent?.name() ?? "")
                     .font(.caption)
                     .padding(8)
                 Spacer()

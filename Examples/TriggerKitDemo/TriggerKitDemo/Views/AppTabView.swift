@@ -32,7 +32,7 @@ struct AppTabView: View {
             }
             .navigationViewStyle(.stack)
             .tabItem {
-                Label("Mapping", image: "logo.bluetooth")
+                Label("Connect", image: "logo.bluetooth")
             }
         }
     }

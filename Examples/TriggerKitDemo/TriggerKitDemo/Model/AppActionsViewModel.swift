@@ -16,7 +16,7 @@ public enum AppAction: String, Codable, Hashable, CaseIterable, Equatable {
     case updateToggle2
 }
 
-@MainActor public class AppActionsViewModel: ObservableObject {
+public class AppActionsViewModel: ObservableObject {
     
     // The mapping of the app action to the trigger, this is stored on disk
     public struct MidiNoteMapping: Codable, Hashable {
@@ -36,72 +36,109 @@ public enum AppAction: String, Codable, Hashable, CaseIterable, Equatable {
     @Published var slider3: Double = 0.0
     @Published var toggle1: Bool = false
     @Published var toggle2: Bool = false
-    @Published var eventString: String = ""
+    @Published var currentEvent: TKEvent?
+    @Published var currentMapping: TKMapping<AppAction>?
     
     @Published var midiLearn: Bool = false
     
     // MARK: - Private properties
-    private let bus = TKBus<AppAction>(config: TKBusConfig(clientName: "TriggerKitDemo",
-                                                           model: "SwiftUI",
-                                                           manufacturer: "lightbeamapps",
-                                                           inputConnectionName: "TriggerKitDemo",
-                                                           granularity: 4))
+    public let bus = TKBus<AppAction>(config: TKBusConfig(clientName: "TriggerKitDemo",
+                                                          model: "SwiftUI",
+                                                          manufacturer: "lightbeamapps",
+                                                          inputConnectionName: "TriggerKitDemo",
+                                                          decimalPlaces: 4))
     
     init() {
         try? bus.midiStart()
-        self.setBindings()
         self.startup()
     }
     
-    func setBindings() {
-        Task {
-            for await value in bus.$eventString.values {
-                await updateEventString(value)
+    private func startup() {
+        bus.setEventCallback { event in
+            if let event {
+                DispatchQueue.main.async { [unowned self] in
+                    self.currentEvent = event
+                    
+                    if var currentMapping = self.currentMapping {
+                        currentMapping.event = event
+                        
+                        let callback = callbackForAction(currentMapping.appAction)
+                        self.bus.addMapping(currentMapping, callback: callback)
+                        
+                        print("updating mapping")
+                    }
+                }
             }
         }
-    }
-    
-    @MainActor func updateEventString(_ value: String) async {
-        self.eventString = value
-    }
-    
-    func startup() {
+        
         // Decode our mapped actions then loop through and all them appropriately
-        
         // Register mappings
-        bus.addMapping(action: .updateSlider1, cc: .init(cc: 33)) { [unowned self] payload in
-            print(payload.value)
-            Task { self.updateSlider(slider: &slider1, value: payload.value) }
+        bus.addMapping(.init(appAction: .updateSlider1,
+                             event: .midiCC(trigger: .init(cc: 2)))) { [unowned self] payload in
+            self.updateSlider(slider: &slider1, value: payload.value)
         }
         
-        bus.addMapping(action: .updateSlider1, cc: .init(cc: 34)) { [unowned self] payload in
-            Task { self.updateSlider(slider: &slider2, value: payload.value) }
+        bus.addMapping(.init(appAction: .updateSlider2,
+                             event: .midiCC(trigger: .init(cc: 3)))) { [unowned self] payload in
+            self.updateSlider(slider: &slider2, value: payload.value)
         }
         
-        bus.addMapping(action: .updateToggle1, cc: .init(cc: 35)) { [unowned self] payload in
-            Task { self.updateSlider(slider: &slider3, value: payload.value) }
+        bus.addMapping(.init(appAction: .updateSlider3,
+                             event: .midiCC(trigger: .init(cc: 4)))) { [unowned self] payload in
+            self.updateSlider(slider: &slider3, value: payload.value)
         }
         
-        bus.addMapping(action: .updateToggle2, note: .init(note: 60)) { [unowned self] payload in
-            Task {
-                self.flipToggle(toggle: &toggle1)
-            }
+        bus.addMapping(.init(appAction: .updateToggle1,
+                             event: .midiCC(trigger: .init(cc: 23)))) { [unowned self] payload in
+            self.flipToggle(toggle: &toggle1)
         }
         
-        bus.addMapping(action: .updateToggle2, note: .init(note: 62)) { [unowned self] payload in
-            Task {
-                self.flipToggle(toggle: &toggle2)
-            }
+        bus.addMapping(.init(appAction: .updateToggle2,
+                             event: .midiCC(trigger: .init(cc: 33)))) { [unowned self] payload in
+            self.flipToggle(toggle: &toggle2)
         }
     }
     
-    @MainActor func updateSlider(slider: inout Double, value: Double?) {
+    private func updateSlider(slider: inout Double, value: Double?) {
         guard let value else { return }
         slider = value
     }
     
-    @MainActor func flipToggle(toggle: inout Bool) {
+    private func flipToggle(toggle: inout Bool) {
         toggle.toggle()
     }
     
+}
+
+extension AppActionsViewModel {
+    public func selectMapping(_ mapping: TKMapping<AppAction>?) {
+        self.currentMapping = mapping
+    }
+}
+
+extension AppActionsViewModel {
+    private func callbackForAction(_ action: AppAction) -> TKPayloadCallback {
+        switch action {
+        case .updateSlider1:
+            return { [unowned self] payload in
+                self.updateSlider(slider: &slider1, value: payload.value)
+            }
+        case .updateSlider2:
+            return { [unowned self] payload in
+                self.updateSlider(slider: &slider2, value: payload.value)
+            }
+        case .updateSlider3:
+            return { [unowned self] payload in
+                self.updateSlider(slider: &slider3, value: payload.value)
+            }
+        case .updateToggle1:
+            return { [unowned self] payload in
+                self.flipToggle(toggle: &toggle1)
+            }
+        case .updateToggle2:
+            return { [unowned self] payload in
+                self.flipToggle(toggle: &toggle2)
+            }
+        }
+    }
 }

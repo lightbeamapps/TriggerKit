@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  TKBus.swift
 //  
 //
 //  Created by dave on 3/05/23.
@@ -9,58 +9,104 @@ import MIDIKitIO
 import Foundation
 import Combine
 
+/// Configuration for the TriggerKit Bus
+///
+/// This is given to TKBus when it is initialized, containing all configurable values
 public struct TKBusConfig {
-    public var clientName: String
-    public var model: String
-    public var manufacturer: String
-    public var inputConnectionName: String
-    public var granularity: Int
-    
+    internal var clientName: String
+    internal var model: String
+    internal var manufacturer: String
+    internal var inputConnectionName: String = "TriggerKit"
+    internal var decimalPlaces: Int
+
+    /// Configuration for the TriggerKit Bus
+    /// - Parameters:
+    ///   - clientName: Name identifying this instance, used via MIDIKit as a Core MIDI client ID
+    ///   - model: The name of your client application, used by MIDIKit
+    ///   - manufacturer: The name of your company used by MIDIKit
+    ///     created by the manager.
+    ///   - decimalPlaces: the number of decimal places MIDI CC values are rounded to
     public init(clientName: String,
                 model: String,
                 manufacturer: String,
-                inputConnectionName: String,
-                granularity: Int = 2) {
+                decimalPlaces: Int = 2,
+                throttleRate: Double = 1 / 120) {
         self.clientName = clientName
         self.model = model
         self.manufacturer = manufacturer
-        self.inputConnectionName = inputConnectionName
-        self.granularity = granularity
+        self.decimalPlaces = decimalPlaces
     }
 }
 
-public class TKBus<V: TKAppActionConstraints>: ObservableObject {
-    // MARK: - Data types
-    public typealias TriggerCallback = (TKTriggerPayLoad) -> Void
+/// Represents the a unique mapping of an app action to an event
+///
+/// Mappings are registered with TKBus in order to associate events, and app actions, to blocks of code to be triggered.
+public struct TKMapping<V>: Hashable where V: TKAppActionConstraints  {
+    /// The unique id of the mapping
+    public var id: UUID    
+    /// Your application's enum representing an action that the app has
+    public var appAction: V
+    /// The TriggerKit event that triggers the appAction and associated block of code
+    public var event: TKEvent
     
-    public struct MappingMidiNote: Codable, Hashable {
-        var action: V
-        var note: TKTriggerMidiNote
+    /// Represents the a unique mapping of an app action to an event
+    /// - Parameters:
+    ///   - id: the unique ID of the mapping. This can be supplied by the client app if decoding existing mappings, or created by the initializer itself.
+    ///   - appAction: Your application's enum representing an action that the app has
+    ///   - event: The TriggerKit event that triggers the appAction and associated block of code
+    public init(id: UUID = UUID(), appAction: V, event: TKEvent) {
+        self.id = id
+        self.appAction = appAction
+        self.event = event
     }
+}
+
+/// Core TriggerKit Bus object
+///
+/// This is the core TriggerKit bus, that your application will use to hold mappings in memory and trigger them according to the events supplied.
+public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
+    // MARK: - Published public properties
     
-    public struct MappingMidiCC: Codable, Hashable {
-        var action: V
-        var cc: TKTriggerMidiCC
-    }
+    /// The latest event received
+    @Published public var event: TKEvent?
+        
+    /// The current mappings associated with events
+    @Published public var mappings: [TKMapping<V>] = []
+
+    // MARK: - Published private properties
     
-    // MARK: - Published properties
-    @Published public var eventString: String = ""
-    @Published public var midiEvents: [TKTriggerMidiNote] = []
+    /// The latest MIDI Note event
+    @Published private var latestNoteEvent: MIDIEvent?
+    
+    /// The latest MIDI CC event
+    @Published private var latestCCEvent: MIDIEvent?
     
     // MARK: - Public properties
     public var midiManager: MIDIManager
     
     // MARK: - Private properties
+    
+    /// The configuration supplied by the application
     private var config: TKBusConfig
     
-    private var mappingsMidiNote: [MappingMidiNote: TriggerCallback] = [:]
-    private var mappingsMidiCC: [MappingMidiCC: TriggerCallback] = [:]
+    /// A look-up for the callbacks to call when events are triggered, linked by the UUID
+    private var callbacks: [UUID: TKPayloadCallback] = [:]
+        
+    /// A single callback for each event, to enable event learning in the application
+    private var eventCallback: TKEventCallback?
     
+    /// The store for TriggerKit's Combine bindings
+    private var cancellables = Set<AnyCancellable>()
+    
+    /// A value for the input connection, used with MIDIKit
     private var inputConnection: MIDIInputConnection? {
         midiManager.managedInputConnections[config.inputConnectionName]
     }
     
     // MARK: - Initialization
+    
+    /// Initialize the TKBus object
+    /// - Parameter config: A struct containing all configurable values
     public init(config: TKBusConfig) {
         self.config = config
         
@@ -69,100 +115,174 @@ public class TKBus<V: TKAppActionConstraints>: ObservableObject {
             model: config.model,
             manufacturer: config.manufacturer
         )
+        
+        self.setBindings()
+    }
+        
+    /// Bindings triggered when events are received from MIDI
+    private func setBindings() {
+        self.$latestCCEvent
+            .sink { event in
+                guard let event else { return }
+                self.handleMidiEvent(event)
+            }
+            .store(in: &cancellables)
+        
+        self.$latestNoteEvent
+            .sink { event in
+                guard let event else { return }
+                self.handleMidiEvent(event)
+            }
+            .store(in: &cancellables)
     }
     
-    public func midiStart() throws {
+    /// Called when you are ready for the TKBus to set up connections and listen for events
+    public func start() throws {
         try midiManager.start()
-
+        
         try midiManager.addInputConnection(
             toOutputs: [], // no need to specify if we're using .allEndpoints
-            tag: "Listener",
+            tag: config.inputConnectionName,
             mode: .allEndpoints, // auto-connect to all outputs that may appear
             filter: .owned(), // don't allow self-created virtual endpoints
             receiver: .events({ [weak self] events in
-                
-                Task { [weak self] in
-                    await self?.handleMidiEvents(events)
-                }
-                
-                self?.eventString = events.description
+                self?.processMidiEvents(events)
             })
         )
     }
     
-    private func handleMidiEvents(_ events: [MIDIEvent]) async {
-        events.forEach { event in
-            switch event {
-            case .noteOn(let noteOn):
-                let note = TKTriggerMidiNote(note: Int(noteOn.note.number))
-                let payload = createPayload(value: Double(noteOn.note.number), value2: noteOn.velocity.unitIntervalValue)
+    /// Private handler method for event arrays received from the MIDI manager
+    private func processMidiEvents(_ events: [MIDIEvent]) {
+        events.forEach({ event in
+            handleMidiEvent(event)
+        })
+    }
+    
+    /// Handles a single event
+    /// - Parameter midiEvent: handles each single midi event, and ensure that callbacks are called on the main thread
+    internal func handleMidiEvent(_ midiEvent: MIDIEvent) {
+        guard
+            let event = TKEvent.createEventFrom(midiEvent: midiEvent),
+            let payload = createPayload(midiEvent)
+        else {
+            return
+        }
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.eventCallback?(event)
+        }
                 
-                let mappingsMatched = self.mappingsMidiNote.filter({ mapping in
-                    mapping.key.note == note
-                })
-                                
-                mappingsMatched.forEach { (key, trigger) in
-                    trigger(payload)
-                }
-                
-            case .cc(let ccEvent):
-                let cc = TKTriggerMidiCC(cc: Int(ccEvent.controller.number))
-                let payload = createPayload(value: ccEvent.value.unitIntervalValue)
-
-                let mappingsMatched = self.mappingsMidiCC.filter({ mapping in
-                    mapping.key.cc == cc
-                })
-                                
-                mappingsMatched.forEach { (key, trigger) in
-                    trigger(payload)
-                }
-
-            default:
-                break
+        let mappings = self.mappings.filter({ $0.event == event })
+        
+        mappings.forEach { mapping in
+            guard let callback = self.callbacks[mapping.id] else { return }
+            
+            DispatchQueue.main.async {
+                callback(payload)
             }
         }
     }
     
-    private func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKTriggerPayLoad {
-    
+    /// Creates a PayLoad from a midi event
+    ///
+    /// - Parameter event: the midi event to create a payload from
+    /// - Returns: a standard TK payload struct
+    internal func createPayload(_ event: MIDIEvent) -> TKPayLoad? {
+        switch event {
+        case .noteOn(let noteOn):
+            return createPayload(value: Double(noteOn.note.number), value2: noteOn.velocity.unitIntervalValue)
+        case .cc(let ccEvent):
+            return createPayload(value: ccEvent.value.unitIntervalValue)
+        default:
+            break
+        }
         
-        let payload = TKTriggerPayLoad(value: roundDouble(value),
+        return nil
+    }
+    
+}
+
+// MARK: - TKEvent Mappings
+extension TKBus {
+    
+    /// Add Mapping
+    ///
+    /// This updates an existing mapping if the UUID matches one held, OR adds a new one at the end of the mappings array if not. Executes changes to the mappings property on the main thread.
+    /// - Parameters:
+    ///   - newMapping: the mapping to be created
+    ///   - callback: the callback to call when the mapping's event is received.
+    public func addMapping(_ newMapping: TKMapping<V>, callback: @escaping TKPayloadCallback) {
+        DispatchQueue.main.async { [weak self] in
+            if let index = self?.mappings.firstIndex(where: { mapping in
+                mapping.id == newMapping.id
+            }) {
+                self?.mappings[index] = newMapping
+            } else {
+                self?.mappings.append(newMapping)
+            }
+            
+            self?.callbacks[newMapping.id] = nil
+            
+            self?.callbacks[newMapping.id] = callback
+        }
+    }
+    
+    public func removeMapping(_ mapping: TKMapping<V>) {
+        DispatchQueue.main.async { [weak self] in
+            self?.mappings.removeAll { item in
+                item.id == mapping.id
+            }
+            
+            self?.callbacks[mapping.id] = nil
+        }
+    }
+    
+}
+
+// MARK: - Event Mappings
+extension TKBus {
+    /// Updates the event callback that is executed when a new event is received. This supports event learning in the application.
+    /// - Parameter callback: The callback to be called
+    public func setEventCallback(_ callback: TKEventCallback?) {
+        eventCallback = callback
+    }
+    
+    /// Removes the current event bacllback that is executed when a new event is received.
+    public func removeEventCallback() {
+        eventCallback = nil
+    }
+}
+
+// MARK: - Convenience functions
+extension TKBus {
+    
+    /// Creates a payload based on a the values provided. Used internally to have one spot where this happens
+    ///
+    /// - Parameters:
+    ///   - value: the main value of the payload
+    ///   - value2: the secondary value of the paylaod
+    ///   - message: some events pass messages back. This is future proofing for support for things like OSC where events can have some extra meta data supplied.
+    /// - Returns: a TK Payload struct
+    internal func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKPayLoad {
+        let payload = TKPayLoad(value: roundDouble(value),
                                        value2: roundDouble(value2),
                                        message: message)
         return payload
     }
     
-    private func roundDouble(_ value: Double?) -> Double? {
+    internal func roundDouble(_ value: Double?) -> Double? {
         guard let value else { return nil }
         
-        let roundedValue = (value * 10 * Double(config.granularity)).rounded()
+        let multiplier = pow(Double(10), Double(config.decimalPlaces))
         
-        return roundedValue / (10 * Double(config.granularity))
-    }
-}
-
-// MARK: - MidiNote Mappings
-extension TKBus {
-    public func addMapping(action: V, note: TKTriggerMidiNote, trigger: @escaping TriggerCallback) {
-        let mapping = MappingMidiNote(action: action, note: note)
-        self.mappingsMidiNote[mapping] = trigger
+        let roundedValue = Double(round(multiplier  * value))
+        return roundedValue / multiplier
     }
     
-    public func removeMapping(_ mapping: MappingMidiNote) {
-        self.mappingsMidiNote[mapping] = nil
-    }
-}
-
-// MARK: - MidiCC Mappings
-extension TKBus {
-    
-    public func addMapping(action: V, cc: TKTriggerMidiCC, trigger: @escaping TriggerCallback) {
-        let mapping = MappingMidiCC(action: action, cc: cc)
-        self.mappingsMidiCC[mapping] = trigger
+    internal func logEvent(_ event: TKEvent?) {
+        DispatchQueue.main.async { [weak self] in
+            self?.eventCallback?(event)
+        }
     }
     
-    public func removeMapping(_ mapping: MappingMidiCC) {
-        self.mappingsMidiCC[mapping] = nil
-    }
-
 }

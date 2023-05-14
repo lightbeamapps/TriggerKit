@@ -98,5 +98,3 @@ This is a permissive license which allows for any type of use, provided the copy
 ## Acknowledgements 🙏
 
 - MIDIKit, without which this library couldn't support MIDI Events: https://github.com/orchetect/MIDIKit
-- We hat-tip top Metatext's source for some guidance on what's where: https://github.com/metabolist/metatext
-

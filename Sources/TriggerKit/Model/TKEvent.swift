@@ -8,6 +8,7 @@
 import Foundation
 import MIDIKit
 
+/// The callback executed when an event is received by the TKBus object. Typically used for event learn features in the application
 public typealias TKEventCallback = (TKEvent?) -> (Void)
 
 /// Wrapper for different trigger types, to transport the most recent one back for MIDI learn features

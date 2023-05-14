@@ -61,9 +61,9 @@ public struct TKMapping<V>: Hashable where V: TKAppActionConstraints  {
     }
 }
 
+/// Core TriggerKit Bus object
 ///
-///
-///
+/// This is the core TriggerKit bus, that your application will use to hold mappings in memory and trigger them according to the events supplied.
 public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
     // MARK: - Published public properties
     
@@ -104,7 +104,8 @@ public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
     }
     
     // MARK: - Initialization
-    ///
+    
+    /// Initialize the TKBus object
     /// - Parameter config: A struct containing all configurable values
     public init(config: TKBusConfig) {
         self.config = config

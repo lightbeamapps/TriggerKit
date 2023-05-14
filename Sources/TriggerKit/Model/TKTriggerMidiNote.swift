@@ -7,11 +7,22 @@
 
 import Foundation
 
+/// Represents a MIDI note trigger
 public struct TKTriggerMidiNote: Codable, Hashable {
+    /// The int value of the note being triggered, e.g 62
     public var note: Int
+    
+    /// The string value fo the note being triggered, e.g. "D3"
     public var noteString: String
+    
+    /// True if the note is being held down, false if being released
     public var noteOn: Bool
-
+    
+    /// MIDI Note initializer
+    /// - Parameters:
+    ///   - note: The int value of the note being triggered, e.g 62
+    ///   - noteString: The string value fo the note being triggered, e.g. "D3"
+    ///   - noteOn: True if the note is being held down, false if being released
     public init(note: Int, noteString: String? = nil, noteOn: Bool = true) {
         self.note = note
         self.noteString = noteString ?? "\(note)"

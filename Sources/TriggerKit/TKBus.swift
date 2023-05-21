@@ -211,7 +211,7 @@ extension TKBus {
     /// - Parameters:
     ///   - newMapping: the mapping to be created
     ///   - callback: the callback to call when the mapping's event is received.
-    public func addMapping(_ newMapping: TKMapping<V>, callback: @escaping TKPayloadCallback) {
+    public func addMapping(_ newMapping: TKMapping<V>, callback: TKPayloadCallback?) {
         DispatchQueue.main.async { [weak self] in
             if let index = self?.mappings.firstIndex(where: { mapping in
                 mapping.id == newMapping.id

@@ -47,14 +47,14 @@ public struct TKMapping<V>: Hashable where V: TKAppActionConstraints  {
     /// Your application's enum representing an action that the app has
     public var appAction: V
     /// The TriggerKit event that triggers the appAction and associated block of code
-    public var event: TKEvent
+    public var event: TKEvent?
     
     /// Represents the a unique mapping of an app action to an event
     /// - Parameters:
     ///   - id: the unique ID of the mapping. This can be supplied by the client app if decoding existing mappings, or created by the initializer itself.
     ///   - appAction: Your application's enum representing an action that the app has
     ///   - event: The TriggerKit event that triggers the appAction and associated block of code
-    public init(id: UUID = UUID(), appAction: V, event: TKEvent) {
+    public init(id: UUID = UUID(), appAction: V, event: TKEvent?) {
         self.id = id
         self.appAction = appAction
         self.event = event

@@ -41,7 +41,7 @@ public struct TKBusConfig {
 /// Represents the a unique mapping of an app action to an event
 ///
 /// Mappings are registered with TKBus in order to associate events, and app actions, to blocks of code to be triggered.
-public struct TKMapping<V>: Hashable where V: TKAppActionConstraints  {
+public struct TKMapping<V>: Hashable, Codable where V: TKAppActionConstraints  {
     /// The unique id of the mapping
     public var id: UUID    
     /// Your application's enum representing an action that the app has

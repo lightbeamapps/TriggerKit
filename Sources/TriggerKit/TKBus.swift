@@ -263,8 +263,8 @@ extension TKBus {
     ///   - value2: the secondary value of the paylaod
     ///   - message: some events pass messages back. This is future proofing for support for things like OSC where events can have some extra meta data supplied.
     /// - Returns: a TK Payload struct
-    internal func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKPayLoad {
-        let payload = TKPayLoad(value: roundDouble(value),
+    internal func createPayload(value: Double, value2: Double? = nil, message: String? = nil) -> TKPayLoad {
+        let payload = TKPayLoad(value: roundDouble(value) ?? 0,
                                        value2: roundDouble(value2),
                                        message: message)
         return payload

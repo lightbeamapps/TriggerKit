@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MIDIKit
 
 /// Represents a MIDI note trigger
 public struct TKTriggerMidiNote: Codable, Hashable {
@@ -25,7 +26,14 @@ public struct TKTriggerMidiNote: Codable, Hashable {
     ///   - noteOn: True if the note is being held down, false if being released
     public init(note: Int, noteString: String? = nil, noteOn: Bool = true) {
         self.note = note
-        self.noteString = noteString ?? "\(note)"
+        if let noteString {
+            self.noteString = noteString
+        } else if let midiNote = try? MIDINote.init(note) {
+            self.noteString = midiNote.stringValue()
+        } else {
+            self.noteString = String(note)
+        }
+
         self.noteOn = noteOn
     }
 }

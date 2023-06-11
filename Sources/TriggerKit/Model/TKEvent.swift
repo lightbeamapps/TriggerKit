@@ -34,7 +34,7 @@ public enum TKEvent: Codable, Hashable {
         case .midiCC(let trigger):
             return "CC: \(trigger.cc)"
         case .midiNote(let trigger):
-            return "Note: \(trigger.note), \(trigger.noteString)"
+            return "Note: \(trigger.noteString), \(trigger.note)"
         }
     }
 }

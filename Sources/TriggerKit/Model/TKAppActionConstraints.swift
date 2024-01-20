@@ -8,4 +8,4 @@
 import Foundation
 
 /// App Actions supplied have to adhere to these constraints
-public typealias TKAppActionConstraints = Codable & CaseIterable & Hashable
+public typealias TKAppActionConstraints = Codable & CaseIterable & Hashable & Identifiable

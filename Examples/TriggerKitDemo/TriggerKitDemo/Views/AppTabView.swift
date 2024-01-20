@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import TriggerKit
 
 struct AppTabView: View {
     var body: some View {

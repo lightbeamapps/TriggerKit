@@ -41,20 +41,20 @@ public struct TKBusConfig {
 /// Represents the a unique mapping of an app action to an event
 ///
 /// Mappings are registered with TKBus in order to associate events, and app actions, to blocks of code to be triggered.
-public struct TKMapping<V>: Hashable where V: TKAppActionConstraints  {
+public struct TKMapping<V>: Hashable, Codable, Identifiable where V: TKAppActionConstraints  {
     /// The unique id of the mapping
     public var id: UUID    
     /// Your application's enum representing an action that the app has
     public var appAction: V
     /// The TriggerKit event that triggers the appAction and associated block of code
-    public var event: TKEvent
+    public var event: TKEvent?
     
     /// Represents the a unique mapping of an app action to an event
     /// - Parameters:
     ///   - id: the unique ID of the mapping. This can be supplied by the client app if decoding existing mappings, or created by the initializer itself.
     ///   - appAction: Your application's enum representing an action that the app has
     ///   - event: The TriggerKit event that triggers the appAction and associated block of code
-    public init(id: UUID = UUID(), appAction: V, event: TKEvent) {
+    public init(id: UUID = UUID(), appAction: V, event: TKEvent?) {
         self.id = id
         self.appAction = appAction
         self.event = event
@@ -211,7 +211,7 @@ extension TKBus {
     /// - Parameters:
     ///   - newMapping: the mapping to be created
     ///   - callback: the callback to call when the mapping's event is received.
-    public func addMapping(_ newMapping: TKMapping<V>, callback: @escaping TKPayloadCallback) {
+    public func addMapping(_ newMapping: TKMapping<V>, callback: TKPayloadCallback?) {
         DispatchQueue.main.async { [weak self] in
             if let index = self?.mappings.firstIndex(where: { mapping in
                 mapping.id == newMapping.id
@@ -263,8 +263,8 @@ extension TKBus {
     ///   - value2: the secondary value of the paylaod
     ///   - message: some events pass messages back. This is future proofing for support for things like OSC where events can have some extra meta data supplied.
     /// - Returns: a TK Payload struct
-    internal func createPayload(value: Double? = nil, value2: Double? = nil, message: String? = nil) -> TKPayLoad {
-        let payload = TKPayLoad(value: roundDouble(value),
+    internal func createPayload(value: Double, value2: Double? = nil, message: String? = nil) -> TKPayLoad {
+        let payload = TKPayLoad(value: roundDouble(value) ?? 0,
                                        value2: roundDouble(value2),
                                        message: message)
         return payload

@@ -10,26 +10,23 @@ import SwiftUI
 struct AppTabView: View {
     var body: some View {
         TabView {
-            NavigationView {
+            NavigationStack {
                 DemoView()
             }
-            .navigationViewStyle(.stack)
             .tabItem {
                 Label("Demo", systemImage: "play.circle")
             }
             
-            NavigationView {
+            NavigationStack {
                 ActionsView()
             }
-            .navigationViewStyle(.stack)
             .tabItem {
                 Label("Mapping", systemImage: "switch.2")
             }
             
-            NavigationView {
+            NavigationStack {
                 TKBluetoothMIDIView()
             }
-            .navigationViewStyle(.stack)
             .tabItem {
                 Label("Connect", image: "logo.bluetooth")
             }

@@ -19,21 +19,34 @@ public struct TKTriggerMidiNote: Codable, Hashable {
     /// True if the note is being held down, false if being released
     public var noteOn: Bool
     
+    public var channel: UInt4?
+    
     /// MIDI Note initializer
     /// - Parameters:
     ///   - note: The int value of the note being triggered, e.g 62
     ///   - noteString: The string value fo the note being triggered, e.g. "D3"
     ///   - noteOn: True if the note is being held down, false if being released
-    public init(note: Int, noteString: String? = nil, noteOn: Bool = true) {
+    public init(
+        note: Int,
+        noteString: String? = nil,
+        noteOn: Bool = true,
+        channel: UInt4? = nil
+    ) {
         self.note = note
+        self.channel = channel
+        
         if let noteString {
             self.noteString = noteString
-        } else if let midiNote = try? MIDINote.init(note) {
+        } else if let midiNote = try? MIDINote.init(
+            note
+        ) {
             self.noteString = midiNote.stringValue()
         } else {
-            self.noteString = String(note)
+            self.noteString = String(
+                note
+            )
         }
-
+        
         self.noteOn = noteOn
     }
 }

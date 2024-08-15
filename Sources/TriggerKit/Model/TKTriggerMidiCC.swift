@@ -15,6 +15,16 @@ public struct TKTriggerMidiCC: Codable, Hashable {
     
     public var channel: UInt4?
     
+    public var channelString: String {
+        var channelText = "All"
+
+        if let channel = channel {
+            channelText = "\(channel)"
+        }
+        
+        return channelText
+    }
+    
     /// - Parameter cc: the CC value of the midi trigger
     public init(
         cc: Int,

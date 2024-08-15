@@ -21,6 +21,16 @@ public struct TKTriggerMidiNote: Codable, Hashable {
     
     public var channel: UInt4?
     
+    public var channelString: String {
+        var channelText = "All"
+
+        if let channel = channel {
+            channelText = "\(channel)"
+        }
+        
+        return channelText
+    }
+    
     /// MIDI Note initializer
     /// - Parameters:
     ///   - note: The int value of the note being triggered, e.g 62

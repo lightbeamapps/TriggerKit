@@ -19,10 +19,10 @@ public enum TKEvent: Codable, Hashable {
     internal static func createEventFrom(midiEvent: MIDIEvent) -> TKEvent? {
         switch midiEvent {
         case .noteOn(let noteOn):
-            let trigger = TKTriggerMidiNote(note: Int(noteOn.note.number), noteString: noteOn.note.stringValue())
+            let trigger = TKTriggerMidiNote(note: Int(noteOn.note.number), noteString: noteOn.note.stringValue(), channel: noteOn.channel)
             return .midiNote(trigger: trigger)
         case .cc(let ccEvent):
-            let trigger = TKTriggerMidiCC(cc: Int(ccEvent.controller.number))
+            let trigger = TKTriggerMidiCC(cc: Int(ccEvent.controller.number), channel: ccEvent.channel)
             return .midiCC(trigger: trigger)
         default:
             return nil
@@ -37,4 +37,14 @@ public enum TKEvent: Codable, Hashable {
             return "Note: \(trigger.noteString), \(trigger.note)"
         }
     }
+    
+    public func channelString() -> String {
+        switch self {
+        case .midiCC(let trigger):
+            return trigger.channelString
+        case .midiNote(let trigger):
+            return trigger.channelString
+        }
+    }    
+    
 }

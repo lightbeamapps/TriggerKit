@@ -172,7 +172,22 @@ public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
             self?.eventCallback?(event)
         }
                 
-        let mappings = self.mappings.filter({ $0.event == event })
+        let channelMappings = self.mappings.filter({ $0.event == event })
+        
+        let globalEvent: TKEvent = {
+            switch event {
+            case .midiCC(var trigger):
+                trigger.channel = nil
+                return .midiCC(trigger: trigger)
+            case .midiNote(var trigger):
+                trigger.channel = nil
+                return .midiNote(trigger: trigger)
+            }
+        }()
+        
+        let globalMappings = self.mappings.filter({ $0.event == globalEvent })
+        
+        let mappings = channelMappings + globalMappings
         
         mappings.forEach { mapping in
             guard let callback = self.callbacks[mapping.id] else { return }

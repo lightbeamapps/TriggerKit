@@ -59,4 +59,5 @@ public struct TKTriggerMidiNote: Codable, Hashable {
         
         self.noteOn = noteOn
     }
+    
 }

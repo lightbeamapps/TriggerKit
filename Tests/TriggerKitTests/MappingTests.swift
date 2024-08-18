@@ -7,7 +7,9 @@ final class MappingTests: XCTestCase {
         TKBusConfig(clientName: "TriggerKit", model: "TriggerKit", manufacturer: "Lightbeam Apps")
     }
     
-    enum TestAction: TKAppActionConstraints {
+    enum TestAction: String, TKAppActionConstraints {
+        var id: String { self.rawValue }
+        
         case testAction1
         case testAction2
         case testAction3

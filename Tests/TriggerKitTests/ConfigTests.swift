@@ -10,7 +10,8 @@ import XCTest
 
 final class ConfigTests: XCTestCase {
     
-    enum TestAction: TKAppActionConstraints {
+    enum TestAction: String, TKAppActionConstraints {
+        var id: String { self.rawValue }
         case testAction1
         case testAction2
         case testAction3

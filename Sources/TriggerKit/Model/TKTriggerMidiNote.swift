@@ -25,7 +25,7 @@ public struct TKTriggerMidiNote: Codable, Hashable {
         var channelText = "All"
 
         if let channel = channel {
-            channelText = "\(channel)"
+            channelText = "\(Int(channel) + 1)"
         }
         
         return channelText

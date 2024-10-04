@@ -25,11 +25,14 @@ struct AppTabView: View {
             }
             
             NavigationStack {
-                TKBluetoothMIDIView()
+                VStack {
+                    TKBluetoothMIDIView()
+                }
             }
             .tabItem {
                 Label("Connect", image: "logo.bluetooth")
             }
         }
+        .govjTabViewStyle()
     }
 }

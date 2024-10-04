@@ -33,7 +33,7 @@ public class TKBTMIDICentralViewController: CABTMIDICentralViewController {
     
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-    
+            
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .done,
             target: self,

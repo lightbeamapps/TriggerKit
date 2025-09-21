@@ -139,16 +139,9 @@ public class TKBus<V>: ObservableObject where V: TKAppActionConstraints  {
     /// Called when you are ready for the TKBus to set up connections and listen for events
     public func start() throws {
         try midiManager.start()
-        
-        try midiManager.addInputConnection(
-            toOutputs: [], // no need to specify if we're using .allEndpoints
-            tag: config.inputConnectionName,
-            mode: .allEndpoints, // auto-connect to all outputs that may appear
-            filter: .owned(), // don't allow self-created virtual endpoints
-            receiver: .events({ [weak self] events in
-                self?.processMidiEvents(events)
-            })
-        )
+        try midiManager.addInputConnection(to: .allOutputs, tag: config.inputConnectionName, receiver: .events(options: [], { [weak self] events, timeStamp, source in
+            self?.processMidiEvents(events)
+        }))
     }
     
     /// Private handler method for event arrays received from the MIDI manager
